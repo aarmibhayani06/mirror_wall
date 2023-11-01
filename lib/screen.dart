@@ -1,8 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:mirror_wall/serach.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class Site extends StatefulWidget {
   const Site({super.key});
@@ -16,6 +15,8 @@ class _SiteState extends State<Site> {
   InAppWebViewController? controller;
   late PullToRefreshController pullToRefreshController;
   final List<String> bookmarks = [];
+
+  String url = "https://www.google.com/";
 
   @override
   void initState() {
@@ -32,7 +33,9 @@ class _SiteState extends State<Site> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xff202125),
         title: Text('Browser App'),
+        elevation: 0,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -81,39 +84,34 @@ class _SiteState extends State<Site> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 580,
-            child: InAppWebView(
-              pullToRefreshController: pullToRefreshController,
-              onWebViewCreated: (abc) {
-                controller = abc;
-              },
-              initialUrlRequest: URLRequest(
-                  url: Uri.parse('https://www.google.com/'),
-              ),
-              onProgressChanged: (controller, progress) {
-                if (progress == 100)
-                  {
-                    pullToRefreshController.endRefreshing();
-                  }
-              },
+      body: InAppWebView(
+            pullToRefreshController: pullToRefreshController,
+            onWebViewCreated: (abc) {
+              controller = abc;
+            },
+            initialUrlRequest: URLRequest(
+                url: Uri.parse(url),
             ),
+            onProgressChanged: (controller, progress) {
+              if (progress == 100)
+                {
+                  pullToRefreshController.endRefreshing();
+                }
+            },
           ),
-          Container(
-            height: 60,
-          )
-        ],
-      ),
       bottomNavigationBar: BottomNavigationBar(
+        fixedColor: Colors.black,
+        backgroundColor: Colors.green,
         items: [
           BottomNavigationBarItem(
-              icon: IconButton(color: Colors.black,
-                  onPressed: () {},
-                  icon: Icon(Icons.home_outlined,)), label: ''),
+              icon: IconButton(color: Colors.white,
+                  onPressed: () async {
+                await controller?.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)) );
+                  },
+                  icon: Icon(Icons.home_outlined,)), label: '',
+              backgroundColor: Color(0xff202125)),
           BottomNavigationBarItem(
-              icon: IconButton(color: Colors.black,
+              icon: IconButton(color: Colors.white,
                   onPressed: () {
 
                   },
@@ -128,13 +126,13 @@ class _SiteState extends State<Site> {
                         await controller?.goBack();
                       }
                     },
-                   child: Icon(Icons.arrow_back_ios,color: Colors.black,)),label: ''),
+                   child: Icon(Icons.arrow_back_ios,color: Colors.white,)),label: ''),
           BottomNavigationBarItem(
               icon: InkWell(
                   onTap: () {
                     controller?.reload();
                     },
-                  child: Icon(Icons.refresh,color: Colors.black,)),label: ''),
+                  child: Icon(Icons.refresh,color: Colors.white,)),label: ''),
           BottomNavigationBarItem(
               icon: InkWell(
                   onTap: () async {
@@ -145,10 +143,10 @@ class _SiteState extends State<Site> {
                       await controller?.goForward();
                     }
                   },
-                  child: Icon(Icons.arrow_forward_ios,color: Colors.black,)),label: ''),
-        ],
-      ),
-    );
+                  child: Icon(Icons.arrow_forward_ios,color: Colors.white,)),label: ''),
+            ]
+          )
+      );
   }
 }
 void showBottomSheet(BuildContext context) {
