@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
@@ -14,11 +13,13 @@ class _SiteState extends State<Site> {
 
   InAppWebViewController? controller;
   late PullToRefreshController pullToRefreshController;
-  final List<String> bookmarks = [];
+
 
   String url = "https://www.google.com/";
 
   @override
+  final List<String> bookmarks = [];
+
   void initState() {
     // TODO: implement initState
     pullToRefreshController = PullToRefreshController(
@@ -37,51 +38,27 @@ class _SiteState extends State<Site> {
         title: Text('Browser App'),
         elevation: 0,
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'option1') {
-                // Show a BottomSheet for Option 1
-                showBottomSheet(context);
-              } else if (value == 'option2') {
-                // Show a BottomSheet for Option 2
-                showBottomSheet(context);
-              }
-            },
-            itemBuilder: (BuildContext context) {
+          PopupMenuButton(
+            icon: Icon(Icons.more_vert,color: Colors.white,),
+            itemBuilder: (context){
               return [
-                PopupMenuItem<String>(
-                  value: 'option1',
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.bookmark,color: Colors.black,),
+                PopupMenuItem(
+                    child: TextButton.icon(
                         onPressed: () {
-
+                         openBookmark();
                         },
-                      ),
-                      SizedBox(width: 5,),
-                      Text('All Bookmarks'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'option2',
-                  child: Row(
-                    children: [
-                      IconButton(
+                        icon: Icon(Icons.bookmark_add_outlined,color: Colors.black,),
+                        label: Text('All Bookmark',style: TextStyle(color: Colors.black),))),
+                PopupMenuItem(
+                    child: TextButton.icon(
+                        onPressed: (){ },
                         icon: Icon(Icons.search_rounded,color: Colors.black,),
-                        onPressed: () {
-
-                        },
-                      ),
-                      SizedBox(width: 5,),
-                      Text('Search Engine'),
-                    ],
-                  ),
-                ),
+                        label: Text('Search Engine',style: TextStyle(color: Colors.black),))),
               ];
             },
-          ),
+          )
+
+
         ],
       ),
       body: InAppWebView(
@@ -113,9 +90,8 @@ class _SiteState extends State<Site> {
           BottomNavigationBarItem(
               icon: IconButton(color: Colors.white,
                   onPressed: () {
-
-
-                  },
+                      addFavoriteLink(context);
+                      },
                   icon: Icon(Icons.bookmark_add_outlined,)), label: ''),
           BottomNavigationBarItem(
               icon: InkWell(
@@ -150,15 +126,77 @@ class _SiteState extends State<Site> {
       );
   }
 }
-void showBottomSheet(BuildContext context) {
-  showModalBottomSheet(
+
+final List<String> bookmarks = [];
+InAppWebViewController? controller;
+
+
+void addFavoriteLink(BuildContext context) async {
+  final String? newLink = await showDialog<String>(
     context: context,
     builder: (BuildContext context) {
-      return Container(
-        padding: EdgeInsets.all(16),
-        child: Text('This is a Bottom Sheet'),
+      return SimpleDialog(
+        title: Text('Add Favorite Link'),
+        children: <Widget>[
+          TextField(
+              onSubmitted: (link)async {
+                Navigator.pop(context, link);
+                final String? title = await showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SimpleDialog(
+                        title: Text('add'),
+                        children: [
+                          TextField(
+                            onSubmitted: (bookmarkTitle) {
+                              Navigator.pop(context, bookmarkTitle);
+
+                            },
+                          )
+                        ],
+                      );
+                    }
+                );
+              }
+          ),
+          TextButton(
+            child: Text('Save'),
+            onPressed: () async{
+              Navigator.pop(context);
+              Uri? url = await controller?.getUrl();
+              if (url != null) {
+                bookmarks.add(url.toString());
+              }
+            },
+          ),
+        ],
       );
     },
   );
 }
+void saveBookmark(String link) {
+  bookmarks.add(link);
+}
+void openBookmark() async{
+  var context;
+  final selectedBookmark = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context){
+        return SimpleDialog(
+          title: Text('selected bookmark'),
+          children: bookmarks.map((e) => SimpleDialogOption(
+            onPressed: (){
+              Navigator.pop(context, bookmarks);
+            },
+            child: Text(e),
+          )).toList(),
+        );
+      });
+  if(selectedBookmark != null){
+    await controller?.loadUrl(urlRequest: URLRequest(
+        url: Uri.parse(selectedBookmark)
+    ));
+  }
+}
+
 
